@@ -4,8 +4,8 @@ import App from './App.jsx'
 import './index.css'
 
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
-import vehicles from './data/vehicles.js'
-import VehiclesView from './views/VehiclesView.jsx'
+import vehicles from './components/data/vehicles'
+import VehicleView from './views/VehicleView.jsx'
 
 const routes = [
   {
@@ -17,7 +17,7 @@ const routes = [
 vehicles.forEach((vehicle) => {
   routes.push({
     path: vehicle.name,
-    element: <VehicleView vehicle={vehicle}/>
+    element: <VehicleView vehicle={vehicle} />
   })
 })
   

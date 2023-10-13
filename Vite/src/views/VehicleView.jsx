@@ -1,6 +1,6 @@
 import React from 'react'
 
-function VehiclesView() {
+function VehicleView({vehicle}) {
   return (
     <div>
       <h1>{vehicle.name}</h1>
@@ -10,4 +10,4 @@ function VehiclesView() {
   )
 }
 
-export default VehiclesView
+export default VehicleView

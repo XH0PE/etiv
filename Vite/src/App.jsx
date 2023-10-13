@@ -1,11 +1,11 @@
 import './App.css'
-import Card from './components/Card';
-import vehicles from './components/data/vehicles.js';
+import Card from './components/Card'
+import vehicles from './components/data/vehicles.js'
 
 function App() {
   const vehicleList = vehicles.map((v) => {
-    return <Card title={v.name} image={v.image} description={v.description}/>;
-  });
+    return <Card title={v.name} description={v.description}/>
+  })
 
   return <div className='App'>
   <h1>Hello there!</h1>
@@ -13,7 +13,7 @@ function App() {
   {vehicleList}
   </div>
 
-  </div>;
+  </div>
 }
 
 export default App
