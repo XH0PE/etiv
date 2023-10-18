@@ -1,60 +1,67 @@
-const User = require("../models/user.model")
-const bcrypt = require("bcrypt")
-const jwt = require("../utils/jwt")
+const User = require('../models/user.model');
+const bcrypt = require('bcrypt');
+const jwt = require('../utils/jwt');
 
-function register(req, res){
-
+const register = async (req, res) => {
+    // ? Mostramos por consola los datos enviados
     // console.log(req.body)
-
     const { firstname, lastname, email, password } = req.body
 
-    if(!email) res.status(400).send({msg: "El email es obligatorio"})
-    if(!password) res.status(400).send({msg: "La contraseña es obligatoria"})
-
-    const user = new User ({
-        firstname,
-        lastname,
-        email: email.toLowerCase(),
-        role: 'User',
-        active: false,
-    })
+    if(!email) return res.status(400).send( { msg: "El email es Necesario" })
+    if(!password) return res.status(400).send( { msg: "La contraseña es necesaria" })
 
     const salt = bcrypt.genSaltSync(10)
     const hashPassword = bcrypt.hashSync(password, salt)
 
-    user.password = hashPassword
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
 
-    user.save((error, userStorage) => {
-        if (error){
-            res.status(400).send({msg: "Error al crear usuario"})
-        } else {
-            res.status(200).send(userStorage)
+        if (existingUser) {
+            console.log('El correo ya esta en uso')
+            return res.status(400).send({ msg: "El correo electrónico ya está en uso" });
         }
-    })    
 
+    try{
+        const newUser = new User({
+            firstname,
+            lastname,
+            email: email.toLowerCase(),
+            password: hashPassword,
+            role: "user",
+            active: false
+        })
+
+        res.status(200).send( { msg: 'Registrado' })
+        await newUser.save()
+        console.log('Register Correct')
+
+    } catch(error) {
+        res.status(400).send( { msg: 'Error Al crear el usuario' } )
+        console.log('Error al crear el usuario')
+    }
 }
 
-function login(req, res){
+const login = (req, res) => {
     const { email, password } = req.body
-    if(!email) res.status(400).send({msg: "El email es obligatorio"})
-    if(!password) res.status(400).send({msg: "La contraseña es obligatoria"})
+
+    if(!email) return res.status(400).send( { msg: 'El email es obligatorio' } )
+    if(!password) return res.status(400).send( { msg: 'La contraseña es obligatorio' } )
 
     const emailLowerCase = email.toLowerCase()
 
-    User.findOne({email: emailLowerCase}, (error, userStore) => {
-        if(error){
-            res.status(500).send({msg: "Error del servidor"})
+    User.findOne( { email: emailLowerCase }, (error, userStore) => {
+        if(error) {
+            return res.status(500).send({ msg: 'Error del servdor' })
         } else {
             bcrypt.compare(password, userStore.password, (bcryptError, check) => {
-                if (bcryptError) {
-                    res.status(500).send({msg: "Error del servidor"})
+                if(bcryptError){
+                    return res.status(500).send({ msg: 'Error del servidor' })
                 } else if (!check) {
-                    res.status(400).send({msg: "Usuario o contraseña incorrecta"})
+                    return res.status(400).send({ msg: 'Usuario o Contraseña Incorrecta' })
                 } else if (!userStore.active) {
-                    res.status(401).send({msg: "Usuaio no autorizado o no activo"})
+                    return res.status(401).send({ msg: 'Usuario no autorizado o no activo' })
                 } else {
                     res.status(200).send({
-                        access: jwt.createAccessToken(userStore),
+                        access: jwt.createAccesssToken(userStore),
                         refresh: jwt.createRefreshToken(userStore)
                     })
                 }
@@ -63,19 +70,19 @@ function login(req, res){
     })
 }
 
-function refreshAccessToken(req, res){
+const refreshAccessToken = (req, res) => {
     const { token } = req.body
 
-    if(!token) res.status(400).send({msg: "Error token requerido"})
+    if(!token) return res.status(400).send({ msg: 'Error token requerido' })
 
     const { user_id } = jwt.decoded(token)
 
-    User.findOne({ _id: user_id }, (error, userStorage) => {
+    User.findOne( { _id: user_id }, (error, userStorage) => {
         if(error){
-            res.status(500).send({msg: "Error del servidor"})
+            return res.status(500).send( { msg: 'Error del servidor' })
         } else {
             res.status(200).send({
-                accessToken: jwt.createAccessToken(userStorage)
+                accessToken: jwt.createAccesssToken(userStorage)
             })
         }
     })
